@@ -1,0 +1,6 @@
+bibentry(
+  bibtype  = "Unpublished",
+  title    = "privlocR: A Privacy Preserving R package for Location Analysis based on OpenStreetMap",
+  author   = "Haran Sened",
+  year     = "2024"
+)
