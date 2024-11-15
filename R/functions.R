@@ -13,8 +13,14 @@
 #   Check Package:             'Ctrl + Shift + E'
 #   Test Package:              'Ctrl + Shift + T'
 
+#done to remove some warnings due to set_units using m without quotes
+m = 1
 
-get_close_elements <- function(long, lat, elements, dst = set_units(100, m)) {
+default_file_name <- function() {
+  return("privlocR_consolidated.gpkg")
+}
+
+get_close_elements <- function(long, lat, elements, dst = units::set_units(100, m)) {
   mypoint <- st_sfc(st_point(c(long, lat)))
   st_crs(mypoint) <- st_crs(elements)
   sf_use_s2(FALSE)
@@ -23,7 +29,7 @@ get_close_elements <- function(long, lat, elements, dst = set_units(100, m)) {
   return(elements[elements$distance < dst, ])
 }
 
-get_close_tags <- function(lat, long, elements, tags = DEFAULT_TAGS, dst = set_units(100, m)) {
+get_close_tags <- function(lat, long, elements, tags = DEFAULT_TAGS, dst = units::set_units(100, m)) {
   locations <- get_close_elements(long, lat, elements)
   ret <- c()
   for (t in tags) {
@@ -35,11 +41,11 @@ get_close_tags <- function(lat, long, elements, tags = DEFAULT_TAGS, dst = set_u
 }
 
 # create an sf geometry object enveloping all points on the list at a set distance
-get_buffered_geometry <- function(lats, longs, dst = set_units(1000, m)) {
+get_buffered_geometry <- function(lats, longs, dst = units::set_units(1000, m)) {
   return(
-    st_buffer(
-      st_sfc(
-        st_multipoint(
+    sf::st_buffer(
+      sf::st_sfc(
+        sf::st_multipoint(
           matrix(c(longs, lats), ncol = 2)
         ),
         crs = 4326
@@ -50,7 +56,7 @@ get_buffered_geometry <- function(lats, longs, dst = set_units(1000, m)) {
 }
 
 # get all close features from a single layer
-get_single_layer_from_pbf_at_buffered_points <- function(fname, lat, long, layer, dst = set_units(1000, m),
+get_single_layer_from_pbf_at_buffered_points <- function(fname, lat, long, layer, dst = units::set_units(1000, m),
                                                          tags = c(
                                                            "landuse", "amenity",
                                                            "natural", "office",
@@ -61,7 +67,7 @@ get_single_layer_from_pbf_at_buffered_points <- function(fname, lat, long, layer
                                                          keep_file = FALSE,
                                                          quiet = TRUE) {
   # Get all data from the relevant area
-  gpkg <- oe_vectortranslate(fname,
+  gpkg <- osmextract::oe_vectortranslate(fname,
     layer = layer,
     boundary = get_buffered_geometry(lat, long, dst = dst),
     extra_tags = tags,
@@ -77,9 +83,9 @@ get_single_layer_from_pbf_at_buffered_points <- function(fname, lat, long, layer
   )
 
 
-  ret <- st_read(gpkg,
+  ret <- sf::st_read(gpkg,
     query = query,
-    quiet = quiet, wkt_filter = st_as_text(get_buffered_geometry(lat, long, dst = dst))
+    quiet = quiet, wkt_filter = sf::st_as_text(get_buffered_geometry(lat, long, dst = dst))
   )
   file.remove(gpkg)
   return(ret)
@@ -92,7 +98,7 @@ get_all_layers_from_pbf_at_buffered_points <-
              "lines", "multipolygons",
              "multilinestrings", "points", "other_relations"
            ),
-           dst = set_units(1000, m),
+           dst = units::set_units(1000, m),
            tags = c(
              "landuse", "amenity",
              "natural", "office",
@@ -115,7 +121,7 @@ filter_relevant_features_from_dir <- function(pbfdir, lat, long,
                                                 "lines", "multipolygons",
                                                 "multilinestrings", "points", "other_relations"
                                               ),
-                                              dst = set_units(1000, m),
+                                              dst = units::set_units(1000, m),
                                               tags = c(
                                                 "landuse", "amenity",
                                                 "natural", "office",
@@ -126,12 +132,12 @@ filter_relevant_features_from_dir <- function(pbfdir, lat, long,
                                               quiet = TRUE,
                                               allow_gpkg = FALSE) {
   all_fnames <- list.files(pbfdir, full.names = TRUE)
-  if (!allow_gpkg & any(!is.na(str_extract(all_fnames, ".gpkg$")))) {
+  if (!allow_gpkg & any(!is.na(stringr::str_extract(all_fnames, ".gpkg$")))) {
     print("Gpkg files in directory. These might be deleted during processing. Aborting. To override set allow_gpkg = TRUE")
     return(NA)
   }
-  pbfs <- all_fnames[!is.na(str_extract(all_fnames, ".osm.pbf$"))]
-  target_fname <- file.path(pbfdir, "privlocR_consolidated.gpkg")
+  pbfs <- all_fnames[!is.na(stringr::str_extract(all_fnames, ".osm.pbf$"))]
+  target_fname <- file.path(pbfdir, default_file_name())
   if (file.exists(target_fname)) file.remove(target_fname)
 
   for (fname in pbfs) {
@@ -144,68 +150,12 @@ filter_relevant_features_from_dir <- function(pbfdir, lat, long,
       quiet
     )
     for (layer in layers) {
-      st_write(data[[layer]], target_fname, layer = layer, append = TRUE, quiet = quiet)
+      sf::st_write(data[[layer]], target_fname, layer = layer, append = TRUE, quiet = quiet)
     }
   }
 }
 
-get_features_close_to_point <- function(pbfdir, lat, long,
-                                        layers = c(
-                                          "lines", "multipolygons",
-                                          "multilinestrings", "points",
-                                          "other_relations"
-                                        ),
-                                        tags = c(
-                                          "landuse", "amenity",
-                                          "natural", "office",
-                                          "shop", "tourism",
-                                          "sport", "leisure",
-                                          "military", "building"
-                                        ),
-                                        dst = set_units(100, m),
-                                        refilter_data = FALSE,
-                                        allow_gpkg = FALSE,
-                                        quiet = TRUE) {
-  target_fname <- file.path(pbfdir, "privlocR_consolidated.gpkg")
-  if (file.exists(target_fname) & !refilter_data) {
-    if (!quiet) print("Existing filtered file detected, continuing with analysis (to refilter use refilter_data = TRUE")
-  } else {
-    if (file.exists(target_fname) & refilter_data) file.remove(target_fname)
-    filter_relevant_features_from_dir(pbfdir, lat, long, layers, dst, tags, quiet, allow_gpkg)
-  }
-  nvals <- length(lat)
-  if (length(long) != nvals) {
-    print("Different numbers of latitude and longitude values, aborting")
-    return(NA)
-  }
 
-  repeats <- c(nvals, sapply(2:nvals, function(x) {
-    min(c(which((lat[1:(x - 1)] == lat[x]) & (long[1:(x - 1)] == long[x])), nvals))
-  }))
-  if (!quiet) {
-    print(paste0("Skipping ", sum(repeats < nvals), " duplicates out of ", nvals))
-  }
-
-  ret <- lapply(1:nvals, function(idx) {
-    if ((repeats[idx]) == nvals) {
-      subret <- lapply(layers, function(layer) {
-        return(st_read(target_fname, layer,
-          wkt_filter =
-            st_as_text(get_buffered_geometry(lat[idx], long[idx], dst = dst)),
-          quiet = TRUE
-        ))
-      })
-      names(subret) <- layers
-    } else {
-      subret <- NA
-    }
-    return(subret)
-  })
-  for (i in 1:nvals) {
-    if (repeats[i] < nvals) ret[[i]] <- ret[[repeats[i]]]
-  }
-  return(ret)
-}
 
 feature_set_to_tag_vector <- function(feature_set,
                                       tags = c(
