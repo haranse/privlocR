@@ -6,21 +6,25 @@ m = 1
 #'
 #' `get_close_tags()` returns relevant tags which are at a certain distance from each location, giving a
 #' meaningful sense of the type of place the person is in without providing exact data. No data is sent
-#' online.
+#' online. If repeated queries are performed from the same directory with the same tags and the same or smaller distance,
+#' most of the analysis will be drawn from cache and analysis time will be greatly reduced.
 #' @param pbfdir File directory with .osm.pbf files containing map data for the relevant area. During processing the function will create a .p
 #' @param lat numeric vector of latitudes
 #' @param long numeric vector of longitudes
-#' @param layers relevant layers from the pbf files
-#' @param tags location tags of interest
-#' @param dst
-#' @param refilter_data
-#' @param allow_gpkg
-#' @param quiet
+#' @param layers relevant layers from the pbf files (Do not touch if not familiar with OpenStreetMap data)
+#' @param tags location tags of interest (Do not touch if not familiar with OpenStreetMap data)
+#' @param dst max distance from each location to look for tags
+#' @param refilter_data forcefully ignore cache
+#' @param quiet less verbose function output
 #'
-#' @return
+#' @return list of vectors of tags, one for each location
 #' @export
 #'
 #' @examples
+#' mydir <- withr::local_tempdir()
+#' file.copy(system.file("extdata", "tokelau.osm.pbf", package = "privlocR"), mydir)
+#' get_close_tags(mydir, c(-9.1979860, -9.192079), c(-171.8501176, -171.856883))
+#' get_close_tags(mydir, c(-9.1979860, -9.192079), c(-171.8501176, -171.856883), dst = units::set_units(10,m))
 get_close_tags <- function(pbfdir, lat, long,
                                layers = DEFAULT_LAYERS,
                                tags = DEFAULT_TAGS,
