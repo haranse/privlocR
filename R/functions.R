@@ -16,9 +16,18 @@
 #done to remove some warnings due to set_units using m without quotes
 m = 1
 
-default_file_name <- function() {
-  return("privlocR_consolidated.gpkg")
-}
+DEFAULT_TAGS = c(
+  "landuse", "amenity",
+  "natural", "office",
+  "shop", "tourism",
+  "sport", "leisure",
+  "military", "building"
+)
+
+DEFAULT_LAYERS = c(
+  "lines", "multipolygons",
+  "multilinestrings", "points", "other_relations"
+)
 
 
 # create an sf geometry object enveloping all points on the list at a set distance
@@ -38,13 +47,7 @@ get_buffered_geometry <- function(lats, longs, dst = units::set_units(1000, m)) 
 
 # get all close features from a single layer
 get_single_layer_from_pbf_at_buffered_points <- function(fname, lat, long, layer, dst = units::set_units(1000, m),
-                                                         tags = c(
-                                                           "landuse", "amenity",
-                                                           "natural", "office",
-                                                           "shop", "tourism",
-                                                           "sport", "leisure",
-                                                           "military", "building"
-                                                         ),
+                                                         tags = DEFAULT_TAGS,
                                                          keep_file = FALSE,
                                                          quiet = TRUE) {
   # Get all data from the relevant area
@@ -75,18 +78,9 @@ get_single_layer_from_pbf_at_buffered_points <- function(fname, lat, long, layer
 # get all close features from all layers from a single pbf
 get_all_layers_from_pbf_at_buffered_points <-
   function(fname, lat, long,
-           layers = c(
-             "lines", "multipolygons",
-             "multilinestrings", "points", "other_relations"
-           ),
+           layers = DEFAULT_LAYERS,
            dst = units::set_units(1000, m),
-           tags = c(
-             "landuse", "amenity",
-             "natural", "office",
-             "shop", "tourism",
-             "sport", "leisure",
-             "military", "building"
-           ),
+           tags = DEFAULT_TAGS,
            quiet = TRUE) {
     ret <- lapply(layers, function(layer) {
       get_single_layer_from_pbf_at_buffered_points(fname, lat, long, layer, dst, tags, quiet = quiet)
@@ -96,56 +90,11 @@ get_all_layers_from_pbf_at_buffered_points <-
   }
 
 
-# filter all features from all layers from all pbf files in a directory that are close to one of the target locations
-filter_relevant_features_from_dir <- function(pbfdir, lat, long,
-                                              layers = c(
-                                                "lines", "multipolygons",
-                                                "multilinestrings", "points", "other_relations"
-                                              ),
-                                              dst = units::set_units(1000, m),
-                                              tags = c(
-                                                "landuse", "amenity",
-                                                "natural", "office",
-                                                "shop", "tourism",
-                                                "sport", "leisure",
-                                                "military", "building"
-                                              ),
-                                              quiet = TRUE,
-                                              allow_gpkg = FALSE) {
-  all_fnames <- list.files(pbfdir, full.names = TRUE)
-  if (!allow_gpkg & any(!is.na(stringr::str_extract(all_fnames, ".gpkg$")))) {
-    print("Gpkg files in directory. These might be deleted during processing. Aborting. To override set allow_gpkg = TRUE")
-    return(NA)
-  }
-  pbfs <- all_fnames[!is.na(stringr::str_extract(all_fnames, ".osm.pbf$"))]
-  target_fname <- file.path(pbfdir, default_file_name())
-  if (file.exists(target_fname)) file.remove(target_fname)
-
-  for (fname in pbfs) {
-    if (!quiet) {
-      print(paste0("Processing ", fname))
-    }
-    data <- get_all_layers_from_pbf_at_buffered_points(
-      fname, lat, long,
-      layers, dst, tags,
-      quiet
-    )
-    for (layer in layers) {
-      sf::st_write(data[[layer]], target_fname, layer = layer, append = TRUE, quiet = quiet)
-    }
-  }
-}
 
 
 
 feature_set_to_tag_vector <- function(feature_set,
-                                      tags = c(
-                                        "landuse", "amenity",
-                                        "natural", "office",
-                                        "shop", "tourism",
-                                        "sport", "leisure",
-                                        "military", "building"
-                                      )) {
+                                      tags = DEFAULT_TAGS) {
   ret <- c()
   for (t in tags) {
     vec <- unlist(sapply(feature_set, function(x) {
@@ -160,13 +109,7 @@ feature_set_to_tag_vector <- function(feature_set,
   return(ret)
 }
 
-feature_list_to_tag_list <- function(feature_list, tags = c(
-                                       "landuse", "amenity",
-                                       "natural", "office",
-                                       "shop", "tourism",
-                                       "sport", "leisure",
-                                       "military", "building"
-                                     )) {
+feature_list_to_tag_list <- function(feature_list, tags = DEFAULT_TAGS) {
   return(lapply(feature_list, function(x) {
     feature_set_to_tag_vector(x, tags)
   }))
