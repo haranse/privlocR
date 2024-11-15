@@ -20,25 +20,6 @@ default_file_name <- function() {
   return("privlocR_consolidated.gpkg")
 }
 
-get_close_elements <- function(long, lat, elements, dst = units::set_units(100, m)) {
-  mypoint <- st_sfc(st_point(c(long, lat)))
-  st_crs(mypoint) <- st_crs(elements)
-  sf_use_s2(FALSE)
-  elements$distance <- st_distance(elements, mypoint)
-  sf_use_s2(TRUE)
-  return(elements[elements$distance < dst, ])
-}
-
-get_close_tags <- function(lat, long, elements, tags = DEFAULT_TAGS, dst = units::set_units(100, m)) {
-  locations <- get_close_elements(long, lat, elements)
-  ret <- c()
-  for (t in tags) {
-    vals <- unique(locations[[t]])
-    vals <- ifelse(vals == "yes", t, vals)
-    ret <- unique(c(ret, vals))
-  }
-  return(ret)
-}
 
 # create an sf geometry object enveloping all points on the list at a set distance
 get_buffered_geometry <- function(lats, longs, dst = units::set_units(1000, m)) {
