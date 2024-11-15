@@ -7,7 +7,7 @@ filter_relevant_features_from_dir <- function(pbfdir, lat, long,
                                               quiet = TRUE) {
   all_fnames <- list.files(pbfdir, full.names = TRUE)
   pbfs <- all_fnames[!is.na(stringr::str_extract(all_fnames, ".osm.pbf$"))]
-  target_fname <- get_cached_file(pbfdir,dst)
+  target_fname <- get_cached_file(pbfdir, dst, tags)
 
   for (fname in pbfs) {
     if (!quiet) {

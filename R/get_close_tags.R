@@ -37,7 +37,7 @@ get_close_features <- function(pbfdir, lat, long,
                                dst = units::set_units(100, m),
                                refilter_data = FALSE,
                                quiet = TRUE) {
-  if (cached_file_exists(pbfdir,dst) & !refilter_data) {
+  if (cached_file_exists(pbfdir, dst, tags) & !refilter_data) {
     if (!quiet) print("Existing filtered file detected, continuing with analysis (to refilter use refilter_data = TRUE")
   } else {
     clear_cached_file(pbfdir)
@@ -56,7 +56,7 @@ get_close_features <- function(pbfdir, lat, long,
     print(paste0("Skipping ", sum(repeats < nvals), " duplicates out of ", nvals))
   }
 
-  target_fname <- get_cached_file(pbfdir,dst)
+  target_fname <- get_cached_file(pbfdir,dst, tags)
 
   ret <- lapply(1:nvals, function(idx) {
     if ((repeats[idx]) == nvals) {
