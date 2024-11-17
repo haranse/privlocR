@@ -1,0 +1,9 @@
+pandoc: 3.1.11
+pkgdown: 2.1.1
+pkgdown_sha: ~
+articles:
+  full_tag_workflow: full_tag_workflow.html
+last_built: 2024-11-17T09:00Z
+urls:
+  reference: https://haranse.github.io/privlocR/reference
+  article: https://haranse.github.io/privlocR/articles
