@@ -1,0 +1,76 @@
+---
+title: "Full Location Tag Workflow"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Full Location Tag Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, include = FALSE}
+mydir <- tempdir()
+file.copy(system.file("extdata", "tokelau.osm.pbf", package = "privlocR"), mydir)
+```
+
+Obtaining tag data for locations using privlocR is a two step process. First, we need to download OpenStreetMap data for the general area in which our location data is expected to be. Then, we can provide privlocR with our locations and it will give us relevant tags, completely offline.
+
+## Data download from the web
+We recommend downloading data from [Geofabrik](https://download.geofabrik.de/), which hosts regularly updated OpenStreetMap data. The required files are `osm.pbf` files. The homepage allows for downloading data for whole continents; clicking on a continent name will go into a list of sub regions (usually by country); some sub regions can be clicked on to reveal even finer grained divisions. For example, clicking on South America and then on Brazil will provide a list of sub regions of Brazil. See below for guidelines on downloading data directly from R, using the `osmextract` package, which might be useful in certain cases. **Importantly, we should save a backup of the map data to allow for reproducibility, as the online map data changes over time.** This also means map data should be downloaded close to the time when location data was collected.
+
+## Generating tags
+Once we have downloaded the appropriate files, we're ready to generate tags. We need to provide a directory with one or more `osm.pbf` files, the distance from each location which we want to search for tags, and the locations themselves. Note that distances are provided using the [units](https://github.com/r-quantities/units) package: distances in meters can be provided using the syntax shown below (`units::set_units(10, m)` is a distance of 10 meters), more advanced options can be found in the `units` package documentation.
+```{r first_example}
+library(privlocR)
+
+# Directory that contains pbf files (the R temporary dir in this case)
+mydir <- tempdir()
+
+# The distance around each location in which we want to search for tags
+mydst = units::set_units(100, m)
+
+#longitude and latitude values
+long = c(-9.1979860, -9.192079)
+lat = c(-171.8501176, -171.856883)
+
+get_close_tags(mydir, long, lat, dst = mydst)
+```
+As we can see, the data tells us that while both locations are close to the ocean, the first is a more commercial area, around a hotel and a restauarant, while the second is only next to some unrecognized building. To ensure uniqueness, tags are composed of the OpenStreetMap tag key and value, separated by an underscore. More information about tags can be found on the OpenStreetMap [wiki](https://wiki.openstreetmap.org/wiki/Tags).
+
+
+
+
+# Advanced Topics
+
+## Runtimes
+Run times for privlocR are dependant on the amount of map data provided - if you provide map data for a whole continent privlocR will take a long time to run even if your data is concentrated in a single country or even city. Importantly, all files in the provided directory are scanned, and so contribute to runtime. If running several analyses concentrated on different geographical areas, only the map data relevant to the current analysis should be in the provided directory.
+
+privlocR provides limited caching - when running the exact same analysis again, or an analysis with the exact same parameters except for a reduced distance, analysis will be much faster. As such, if we want taglists for multiple distances (e.g., one taglist to characterize a broad area around each location and one to identify more specific places), we should start with the larger distance and take care not to change any other parameter, as so:
+```{r second_example}
+# The distance around each location in which we want to search for tags
+mydst2 = units::set_units(10, m)
+
+#calling again, only changing the distance
+get_close_tags(mydir, long, lat, dst = mydst2)
+```
+Now we see that the first location is specifically at an hotel restaurant, and that for the second location, while we know from the previous analysis that there is a building in the vicinity, the location itself is in the open.
+
+## Which size of region should I work with?
+ At the same time, remember that the whole goal of privlocR is not to disclose the locations you are looking for online - downloading data for a tiny village might let someone know that you had a participant there. As a rule of thumb, working with under 0.5 gb of map data - a medium-sized country (e.g., Cameroon) or a state or sub region of a larger one (e.g., a region of India) - is manageable with a modern computer. Working with around multiple gigabytes of data - a larger country or whole continent (e.g., South America) might take about an hour for the first run. In those cases try to make sure that you get all of the required locations in one go, and if multiple distances are required start with the largest distance to take advantage of the caching system.
+
+
+## Downloading using osmextract.
+Data can also be downloaded directly from R using the package [osmextract](https://github.com/ropensci/osmextract). For example, to download data for Tokelau which was used in the package examples, one can run:
+```{r oeexample, eval = FALSE}
+fname = osmextract::oe_find("Tokelau",download_if_missing = TRUE,allow_gpkg = FALSE)
+```
+(Note that `allow_gpkg = FALSE` tells the function to only download an osm.pbf file; the function can also download a .gpkg file which is not used by privlocR)
+The function returns a filename of a temporary files, which should then be copied to a persistent directory for backup.
+osmextract tries to find a file that matches the location provided, which can be a name of a country, region or city. Theoretically, if all locations are contained within a single city, download might be smaller using osmextract that using geofabrik as geofabrik only allows download of relatively large regions (osmextract searches additional repositories beyond geofabrik). However, small cities might not be found at all, and usually a region will be found on geofabrik that contains the city and is not prohibitively large. More information can be found in the [osmextract](https://github.com/ropensci/osmextract) documentation.
+

@@ -105,7 +105,7 @@ feature_set_to_tag_vector <- function(feature_set,
       ret <- c(ret, paste0(t, "_", vec))
     }
   }
-  if (length(ret) == 0) ret <- "none"
+  if (length(ret) == 0) ret <- c()
   return(ret)
 }
 

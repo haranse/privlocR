@@ -16,7 +16,7 @@ get_close_tags(
 )
 }
 \arguments{
-\item{pbfdir}{File directory with .osm.pbf files containing map data for the relevant area. During processing the function will create a .p}
+\item{pbfdir}{File directory with .osm.pbf files containing map data for the relevant area. The directory must be writeable as during processing the function will create temporary files in this directory, and then delete them.}
 
 \item{lat}{numeric vector of latitudes}
 
@@ -45,5 +45,8 @@ most of the analysis will be drawn from cache and analysis time will be greatly 
 mydir <- withr::local_tempdir()
 file.copy(system.file("extdata", "tokelau.osm.pbf", package = "privlocR"), mydir)
 get_close_tags(mydir, c(-9.1979860, -9.192079), c(-171.8501176, -171.856883))
-get_close_tags(mydir, c(-9.1979860, -9.192079), c(-171.8501176, -171.856883), dst = units::set_units(10,m))
+get_close_tags(mydir, c(-9.1979860, -9.192079), c(-171.8501176, -171.856883),
+      dst = units::set_units(10,m))
+get_close_tags(mydir, c(-9.1979860, -9.192079), c(-171.8501176, -171.856883),
+      dst = units::set_units(10,m), tags = c("amenity","landuse"))
 }

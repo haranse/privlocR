@@ -7,14 +7,12 @@ Authors@R:
            comment = c(ORCID = "YOUR-ORCID-ID")),
       person("European Research Council", role = c("fnd")))
 Maintainer: Haran Sened <haranse@gmail.com>
-Description: A package for privacy preserving location classification. Given a
-     set of coordinates and pre-downloaded location data from OpenStreetMap
-     (which the package can help you find) retrieves tags of locations at a
-     certain distance atound each coordinate, such as "shop","ocean","residential".
-     This allows for assigning meaning to locations observed in research, while
-     preserving participant privacy. Coordinates are never sent online, and
-     calculations are reproducible even if OpenStreetMap changes, as long as 
-     the location data files are preserved.
+Description: Given a set of coordinates and pre-downloaded map data from OpenStreetMap
+     retrieves meaningful tags of locations at a certain distance atound each coordinate, 
+     such as "shop","ocean","residential". This allows for assigning meaning to 
+     locations observed in research, while preserving participant privacy. Coordinates 
+     are never sent online, and calculations are reproducible even if OpenStreetMap 
+     changes, as long as the location data files are preserved.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
@@ -24,6 +22,9 @@ RoxygenNote: 7.3.2
 URL: https://github.com/haranse/privlocR
 BugReports: https://github.com/haranse/privlocR/issues
 Suggests: 
+    knitr,
+    rmarkdown,
     testthat (>= 3.0.0),
     withr
 Config/testthat/edition: 3
+VignetteBuilder: knitr
