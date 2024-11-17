@@ -11,15 +11,15 @@ obtained in research, translating a list of longitudes and latitudes to
 a list of meaningful tags describing what is found near the various
 locations (e.g., shop, coastline, restaurant). Researchers fitting
 participants with wearables or collecting location data from smartphones
-can obtain coordinates of participant location over time. However, given
-the coordinates of a participant’s location at a specific time, it would
-be interesting to know whether the participant is at a residential
+can obtain coordinates of participant location over time[^1]. However,
+given the coordinates of a participant’s location at a specific time, it
+would be interesting to know whether the participant is at a residential
 building, a shop, in a forest, or next to the sea. privlocR uses freely
 available, openly licensed data from the
-[OpenStreetMap](https://www.openstreetmap.org) project, to obtain that
-information easily, freely, privately, and reproducibly: **Easily**, as
-the package is hopefully easy to use. **Freely**, as data from
-OpenStreetMap is publicly available for free. **Privately**, as location
+[OpenStreetMap](https://www.openstreetmap.org) project[^2] to obtain
+that information easily, freely, privately, and reproducibly:
+**Easily**, as the package is hopefully easy to use. **Freely**, as data
+from OpenStreetMap is publicly available for free. **Privately**, as no
 data is not sent to any online service. **Reproducibly**, as running
 privlocR on the same downloaded map files will always return the same
 results, even as online map data changes. Additionally, privlocR code is
@@ -45,14 +45,14 @@ pak::pak("haranse/privlocR")
 
 ## Example
 
-Generating tags from a set of locations is as simple as placing a map
-data file in a directory, selecting the distance around each location
-for which to search for tags, and running the get_close_tags function.
-The following example gets all location tags 100 meters or less from the
-two specified locations:
+Generating tags from a set of locations is as simple as placing an
+.osm.pbf map data file, which can be downloaded from
+[Geofabrik](https://download.geofabrik.de/), in a directory; selecting
+the distance around each location for which to search for tags; and
+running the get_close_tags function. The following example gets all
+location tags 100 meters or less from the two specified locations:
 
 ``` r
-library(privlocR)
 library(privlocR)
 
 # Directory that contains pbf files (the R temporary dir in this case)
@@ -87,11 +87,10 @@ the ocean, the first is a more commercial area, around a hotel and a
 restauarant, while the second is only next to some unrecognized
 building.
 
-For information on downloading osm.pbf map data file manually from the
-web or using R, as well as advice regarding performance see the full tag
-workflow vignette.
+Additional information including other ways to download map data, as
+well as advice regarding performance see the full tag workflow vignette.
 
-\##Roadmap
+## Roadmap
 
 There are additional ways to obtain meaning from such data, including
 clustering (i.e., identifying that participants were at the same “place”
@@ -99,3 +98,15 @@ at time A and time B) or assessing mobility (e.g., by estimating the
 distance traveled by the participant every day). Future versions are
 planned to include additional analyses, providing a standard way to
 extract a variety of features from location data.
+
+## Funding
+
+This project has received funding from the European Union’s Horizon 2020
+research and innovation programme under the Marie Sklodowska-Curie grant
+agreement No 101023860.
+
+[^1]:  Of course, the project can be used with location data of any
+    origin (e.g., weather patterns, animal movement, etc.)
+
+[^2]: Other map data can be used, as long as it can be converted to
+    osm.pbf.
