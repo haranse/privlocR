@@ -16,6 +16,8 @@ knitr::opts_chunk$set(
 # privlocR
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/haranse/privlocR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/haranse/privlocR/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/haranse/privlocR/graph/badge.svg)](https://app.codecov.io/gh/haranse/privlocR)
 <!-- badges: end -->
 
 The goal of privlocR is to obtain meaningful tags for location data obtained in research, translating a list of longitudes and latitudes to a list of meaningful tags describing what is found near the various locations (e.g., shop, coastline, restaurant). 
